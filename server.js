@@ -16,16 +16,6 @@ app.use(cookieParser());
 app.set("view engine","ejs")
 app.engine('html', ejs.renderFile)
 
-const posts = [
-    {username : 'kyle',
-    title : 'post1'},
-    {username : 'jim',
-        title : 'post2'},
-        {username : 'rian',
-    title : 'mantab'}
-]
-
-
 
 app.post('/register', async (req,res) => {
     const salt = bcrypt.genSaltSync(10)
