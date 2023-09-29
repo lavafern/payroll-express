@@ -4,7 +4,7 @@ const ejs = require('ejs')
 const bcrypt = require('bcrypt')
 const cookieParser = require('cookie-parser');
 const { authMiddleware,generateToken } = require('./authMiddleware.js');
-const {fetch,register,changePassword} = require('./model/dbService.js')
+const {fetch,fetchByEmail,register,changePassword} = require('./model/dbService.js')
 
 dotenv.config()
 const app = express()
@@ -72,10 +72,14 @@ app.get('/login', (req,res) => {
 app.post('/login', async (req,res) => {
     const email  = req.body.email
     const password = req.body.password
+    console.log('tolol');
 
     try {
-        const data = await fetch()
-        const foundUser = data.find(user => user.email === email)
+        console.log('dongo');
+        const data = await fetchByEmail(email)
+        console.log('idiot');
+        const foundUser = data[0]
+        
         if (!foundUser) throw new Error('user not found')
 
         const realPassword = foundUser.password
@@ -85,7 +89,8 @@ app.post('/login', async (req,res) => {
         const user = {
             userid : foundUser.userid,
             name : foundUser.name,
-            email : foundUser.email
+            email : foundUser.email,
+            role : foundUser.role
         } 
         const accesToken = generateToken(user,'acces')
         const refreshToken = generateToken(user,'refresh')
@@ -94,13 +99,14 @@ app.post('/login', async (req,res) => {
         res.cookie("refreshToken",refreshToken, {httpOnly : true})
         res.redirect('/home')
     }catch (err){ 
-        console.log('no user found');
+        console.log(err.message);
         res.redirect('/login')
     }
 })
 
 app.get('/home',authMiddleware,(req,res) => {
     const urlPath = '../views/home.ejs'
+    console.log(req.user);
     res.render(urlPath,{user : req.user.name})
 })
 

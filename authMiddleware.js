@@ -11,9 +11,15 @@ async function authMiddleware(req,res,next) {
     } catch {
         const refreshToken = req.cookies['refreshToken']
         try {
-            const user = await jwt.verify(refreshToken,process.env.REFRESH_TOKEN_SECRET)
+            const userVerif = await jwt.verify(refreshToken,process.env.REFRESH_TOKEN_SECRET)
             console.log('refresh match and generate new acces token');
-            const accesToken = generateToken({userid : user.userid ,name : user.name, email: user.email},'acces')
+            const user = {
+                userid : userVerif.userid,
+                name : userVerif.name,
+                email: userVerif.email,
+                role : userVerif.role
+            }
+            const accesToken = generateToken(user,'acces')
             res.cookie("accesToken",accesToken, {httpOnly : true})
             res.redirect('/home')
         } catch (err) {

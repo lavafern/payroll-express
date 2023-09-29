@@ -24,6 +24,18 @@ const fetch = () => {
     })
 }
 
+const fetchByEmail= (email) => {
+    return new Promise((resolve, reject) => {
+        client.query(`select * from users inner join users_login on users.userid = users_login.userid where users_login.email = $1`,[email], (err,res) => {
+            if (err) {
+                reject(new Error(' fetch failed'))
+            } else {
+                resolve(res.rows)
+            }
+        })
+    })
+}
+
 const register = (email,name,phone_number,role,job_title,password) => {
 
     values = [email,name,phone_number,role,job_title,password]
@@ -71,5 +83,5 @@ const changePassword = (email,newPassowrd) => {
 }
 
 
-module.exports = {fetch,register,changePassword}
+module.exports = {fetch,fetchByEmail,register,changePassword}
 
