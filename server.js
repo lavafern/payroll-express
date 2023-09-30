@@ -4,7 +4,7 @@ const ejs = require('ejs')
 const bcrypt = require('bcrypt')
 const cookieParser = require('cookie-parser')
 const { authMiddleware,generateToken } = require('./authMiddleware.js')
-const {fetch,fetchByEmail,register,changePassword,attendaceStart} = require('./model/dbService.js')
+const {fetch,fetchByEmail,register,changePassword,attendaceStart, attendaceEnd} = require('./model/dbService.js')
 
 dotenv.config()
 const app = express()
@@ -120,9 +120,21 @@ app.post('/attendanceStart', async (req,res) => {
     try {
     const id = req.body.id
     const data = await attendaceStart(id)
+    console.log(data);
     res.send(data)
     } catch (err) {
         console.log(err)
+    }
+})
+
+app.put('/attendanceEnd', async (req,res) => {
+    try {
+        const id = req.body.id
+        const data = await attendaceEnd(id)
+        console.log(data);
+        res.send(data)
+    } catch (err) {
+        console.log(err);
     }
 })
 

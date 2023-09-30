@@ -91,7 +91,8 @@ const attendaceStart = (id) => {
         status,
         date,
         month,
-        year
+        year,
+        attendace_id
     ) values (
         $1,
         now(),
@@ -99,9 +100,36 @@ const attendaceStart = (id) => {
         else 'present' end,
         extract( day from now()),
         extract( month from now()),
-        extract( year from now())
+        extract( year from now()),
+        concat($2 :: numeric,extract( day from now()),extract( month from now()), extract( year from now()))
     ) returning *
 
+    `
+    const values = [id,id]
+
+    return new Promise((resolve, reject) => {
+        client.query(sqlQuery,values,(err,res) => {
+            if (err) {
+                reject(err)
+            } else {
+                resolve(res.rows)
+            }
+        })
+    })
+}
+
+const attendaceEnd = (id) => {
+    const sqlQuery = `
+    UPDATE attendance 
+    SET end_time =  now(),
+        total_hours_worked = age(now(),start_time)
+    WHERE employee_id = $1
+        AND date =  extract( day from now())
+        AND  month =  extract( month from now())
+        AND year =  extract( year from now())
+
+
+    returning *
     `
     const values = [id]
 
@@ -117,5 +145,12 @@ const attendaceStart = (id) => {
 }
 
 
-module.exports = {fetch,fetchByEmail,register,changePassword,attendaceStart}
+module.exports = {
+    fetch,
+    fetchByEmail,
+    register,
+    changePassword,
+    attendaceStart,
+    attendaceEnd
+}
 
