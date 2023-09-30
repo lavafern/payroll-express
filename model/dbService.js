@@ -1,3 +1,4 @@
+const { query } = require('express')
 const {Client} = require('pg')
 
 const client = new Client(
@@ -82,6 +83,39 @@ const changePassword = (email,newPassowrd) => {
     })
 }
 
+const attendaceStart = (id) => {
+    const sqlQuery = `
+    INSERT INTO attendance(
+        employee_id,
+        start_time,
+        status,
+        date,
+        month,
+        year
+    ) values (
+        $1,
+        now(),
+        case when now() ::time > '08:00:00' ::time then 'late'
+        else 'present' end,
+        extract( day from now()),
+        extract( month from now()),
+        extract( year from now())
+    ) returning *
 
-module.exports = {fetch,fetchByEmail,register,changePassword}
+    `
+    const values = [id]
+
+    return new Promise((resolve, reject) => {
+        client.query(sqlQuery,values,(err,res) => {
+            if (err) {
+                reject(err)
+            } else {
+                resolve(res.rows)
+            }
+        })
+    })
+}
+
+
+module.exports = {fetch,fetchByEmail,register,changePassword,attendaceStart}
 
