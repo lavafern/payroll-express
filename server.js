@@ -73,12 +73,9 @@ app.get('/login', (req,res) => {
 app.post('/login', async (req,res) => {
     const email  = req.body.email
     const password = req.body.password
-    console.log('tolol')
 
     try {
-        console.log('dongo')
         const data = await fetchByEmail(email)
-        console.log('idiot')
         const foundUser = data[0]
         
         if (!foundUser) throw new Error('user not found')
