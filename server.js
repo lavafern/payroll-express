@@ -4,7 +4,7 @@ const ejs = require('ejs')
 const bcrypt = require('bcrypt')
 const cookieParser = require('cookie-parser')
 const { authMiddleware,generateToken } = require('./authMiddleware.js')
-const {fetch,fetchByEmail,register,changePassword,attendaceStart, attendaceEnd} = require('./model/dbService.js')
+const {fetch,fetchByEmail,register,changePassword,attendaceStart, attendaceEnd,newPayroll} = require('./model/dbService.js')
 
 dotenv.config()
 const app = express()
@@ -25,10 +25,11 @@ app.post('/register', async (req,res) => {
     const phone_number = req.body.number
     const role = req.body.role
     const job_title = req.body.job
+    const salary = req.body.salary
     const password = bcrypt.hashSync('123456', salt) // default password
 
 
-    const data = await register(email,name,phone_number,role,job_title,password)
+    const data = await register(email,name,phone_number,role,job_title,salary,password)
 
     res.send(data)
 })
@@ -118,12 +119,13 @@ app.post('/logout', (req,res) => {
 
 app.post('/attendanceStart', async (req,res) => {
     try {
-    const id = req.body.id
-    const data = await attendaceStart(id)
-    console.log(data);
-    res.send(data)
+        const id = req.body.id
+        const date = req.body.date
+        const data = await attendaceStart(id,date)
+        console.log(data);
+        res.send(data)
     } catch (err) {
-        console.log(err)
+        res.send(err.message)
     }
 })
 
@@ -136,6 +138,21 @@ app.put('/attendanceEnd', async (req,res) => {
     } catch (err) {
         console.log(err);
     }
+})
+
+app.post('/GeneratePayroll', async (req,res) => {
+    try {
+        const id = req.body.id
+        const month = req.body.month
+        const year = req.body.year
+
+        const data = await newPayroll(id,month,year)
+        res.send(data)
+    } catch (err) {
+        console.log(err);
+        res.send(err.message)
+    }
+
 })
 
 app.listen(port, () => {

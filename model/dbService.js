@@ -37,20 +37,20 @@ const fetchByEmail= (email) => {
     })
 }
 
-const register = (email,name,phone_number,role,job_title,password) => {
+const register = (email,name,phone_number,role,job_title,salary,password) => {
 
-    values = [email,name,phone_number,role,job_title,password]
+    values = [email,name,phone_number,role,job_title,salary,password]
     const sqlQuery = `
     with 
     s1 as(
         insert into users_login(email,password)
-        values($1,$6)
+        values($1,$7)
         
         returning userid
     )
     
-    insert into users(userid,name,phone_number,role,job_title)
-    select userid,$2,$3,$4,$5 from s1
+    insert into users(userid,name,phone_number,role,job_title,salary)
+    select userid,$2,$3,$4,$5,$6 from s1
     returning *`
 
 
@@ -95,7 +95,7 @@ const attendaceStart = (id) => {
         attendace_id
     ) values (
         $1,
-        now(),
+        now() :: timestamp without time zone,
         case when now() ::time > '08:00:00' ::time then 'late'
         else 'present' end,
         extract( day from now()),
@@ -121,10 +121,12 @@ const attendaceStart = (id) => {
 const attendaceEnd = (id) => {
     const sqlQuery = `
     UPDATE attendance 
-    SET end_time =  now(),
-        total_hours_worked = age(now(),start_time)
+    SET end_time =   now() ::timestamp without time zone ,
+        total_hours_worked = age(now()  ::timestamp without time zone,start_time),
+        overtime = case when now() ::time <= '17:00:00' ::time then '00:00:00' ::interval 
+                    else (now() ::time - '17:00:00'::time)::interval end
     WHERE employee_id = $1
-        AND date =  extract( day from now())
+        AND date   = extract( day from now())
         AND  month =  extract( month from now())
         AND year =  extract( year from now())
 
@@ -144,6 +146,73 @@ const attendaceEnd = (id) => {
     })
 }
 
+const newPayroll = (id,month,year) => {
+    const sqlQuery = `
+    WITH 
+    present_t AS ( SELECT COUNT(*) AS present FROM attendance WHERE status = 'present' AND month=$5 AND year =$6 AND employee_id =$14),
+    late_t AS ( SELECT COUNT(*) AS late FROM attendance WHERE status = 'late' AND month=$7 AND year =$8 AND employee_id =$15),
+    permit_t AS ( SELECT COUNT(*) AS permit FROM attendance WHERE status = 'permit' AND month=$9 AND year =$10 AND employee_id =$16),
+    alpha_t AS ( SELECT COUNT(*) AS alpha FROM attendance WHERE status = 'apha' AND month=$11 AND year =$12 AND employee_id =$17 )
+
+    INSERT INTO payroll(
+        employee_id,
+        bonus,
+        net_pay,
+        printed_date,
+        month,
+        year,
+        payroll_id,
+        present,
+        late,
+        permit,
+        alpha,
+        salary_cuts
+    )
+    SELECT
+        $1,
+        EXTRACT(hour FROM SUM(attendance.overtime))*(users.salary/26/8),
+        users.salary+EXTRACT(hour FROM SUM(attendance.overtime))*(users.salary/26/8)-(30000*(SELECT late FROM late_t))-(100000*(SELECT alpha FROM alpha_t)),
+        now(),
+        EXTRACT(month FROM now()),
+        EXTRACT(year FROM now()),
+        CONCAT('pr',$2 ::varchar,$3::varchar, $4::varchar),
+        (SELECT present FROM present_t),
+        (SELECT late FROM late_t),
+        (SELECT permit FROM permit_t),
+        (SELECT alpha FROM alpha_t),
+        30000*(SELECT late FROM late_t)+200000*(SELECT alpha FROM alpha_t)
+
+        
+
+    FROM attendance
+    INNER JOIN users 
+    ON attendance.employee_id = users.userid 
+    WHERE attendance.employee_id = $13 
+    GROUP BY users.userid 
+    
+    RETURNING *
+    `
+
+    const values = [id,id,month,year,
+                     month,year,
+                     month,year,
+                     month,year,
+                     month,year,
+                    id,id,id,id,id]
+
+    return new Promise((resolve, reject) => {
+        client.query(sqlQuery,values,(err,res) => {
+            if (err) {
+                reject(err)
+            } else {
+                resolve(res.rows)
+            }
+        })
+    })
+
+    
+}
+
 
 module.exports = {
     fetch,
@@ -151,6 +220,7 @@ module.exports = {
     register,
     changePassword,
     attendaceStart,
-    attendaceEnd
+    attendaceEnd,
+    newPayroll
 }
 
