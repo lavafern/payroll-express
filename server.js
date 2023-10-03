@@ -11,10 +11,10 @@ const app = express()
 const port = 3001
 app.use(express.urlencoded({extended : true}))
 app.use(express.json())
+app.use(express.static(__dirname + '/public'));
 app.use(express.static(__dirname + '/views'))
 app.use(cookieParser())
 app.set("view engine","ejs")
-app.engine('html', ejs.renderFile)
 
 
 app.post('/register', async (req,res) => {
@@ -71,8 +71,8 @@ app.get('/login', (req,res) => {
 })
 
 app.post('/login', async (req,res) => {
-    const email  = req.body.email
-    const password = req.body.password
+    const email  = req.body.temail
+    const password = req.body.tpassword
 
     try {
         const data = await fetchByEmail(email)
@@ -87,8 +87,11 @@ app.post('/login', async (req,res) => {
         const user = {
             userid : foundUser.userid,
             name : foundUser.name,
+            phone_number : foundUser.phone_number,
             email : foundUser.email,
-            role : foundUser.role
+            role : foundUser.role,
+            job_title : foundUser.job_title,
+            salary : foundUser.salary
         } 
         const accesToken = generateToken(user,'acces')
         const refreshToken = generateToken(user,'refresh')
@@ -105,7 +108,7 @@ app.post('/login', async (req,res) => {
 app.get('/home',authMiddleware,(req,res) => {
     const urlPath = '../views/home.ejs'
     console.log(req.user)
-    res.render(urlPath,{user : req.user.name})
+    res.render(urlPath,{user : req.user})
 })
 
 app.post('/logout', (req,res) => {

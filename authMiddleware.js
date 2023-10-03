@@ -16,8 +16,11 @@ async function authMiddleware(req,res,next) {
             const user = {
                 userid : userVerif.userid,
                 name : userVerif.name,
+                phone_number : userVerif.phone_number,
                 email: userVerif.email,
-                role : userVerif.role
+                role : userVerif.role,
+                job_title : userVerif.job_title,
+                salary : userVerif.salary
             }
             const accesToken = generateToken(user,'acces')
             res.cookie("accesToken",accesToken, {httpOnly : true})
