@@ -1,12 +1,11 @@
+require('dotenv').config()
 const express = require('express')
-const dotenv =  require('dotenv')
-const ejs = require('ejs')
-const bcrypt = require('bcrypt')
 const cookieParser = require('cookie-parser')
-const { authMiddleware,generateToken } = require('./authMiddleware.js')
-const {fetch,fetchByEmail,register,changePassword,attendaceStart, attendaceEnd,newPayroll} = require('./model/dbService.js')
+const {register,changePassword,loginPage,login,logout,home} = require('./handlers/accountHandlers')
+const {attendanceStart,attendanceEnd} = require('./handlers/attendanceHandler')
+const {payroll} = require('./handlers/payrollHandler')
+const { authMiddleware } = require('./helper/authMiddleware.js')
 
-dotenv.config()
 const app = express()
 const port = 3001
 app.use(express.urlencoded({extended : true}))
@@ -17,143 +16,19 @@ app.use(cookieParser())
 app.set("view engine","ejs")
 
 
-app.post('/register', async (req,res) => {
-    const salt = bcrypt.genSaltSync(10)
-
-    const email = req.body.email
-    const name = req.body.name 
-    const phone_number = req.body.number
-    const role = req.body.role
-    const job_title = req.body.job
-    const salary = req.body.salary
-    const password = bcrypt.hashSync('123456', salt) // default password
+app.post('/register', register)
+app.put('/ChangePassword', changePassword)
+app.get('/login', loginPage)
+app.post('/login', login)
+app.get('/home',authMiddleware,home)
+app.post('/logout', logout)
 
 
-    const data = await register(email,name,phone_number,role,job_title,salary,password)
+app.post('/attendanceStart',authMiddleware, attendanceStart)
+app.put('/attendanceEnd', attendanceEnd)
 
-    res.send(data)
-})
 
-app.put('/ChangePassword', async (req,res) => {
-    try{
-        const email = req.body.email
-        const oldPassword = req.body.oldPassword
-        const newPassword = req.body.newPassword
-
-        const data = await fetch()
-        const foundUser =  data.find(user => user.email === email)
-        const realPassword = foundUser.password
-
-        const compare = await bcrypt.compare(oldPassword,realPassword)
-        if (!compare) throw new Error('wrong password')
-
-        const salt = bcrypt.genSaltSync(10)
-        const newPasswordEncrypted = bcrypt.hashSync(newPassword, salt)
-
-        const response = await changePassword(email,newPasswordEncrypted)
-        res.send(response)
-    } catch (err) {
-        res.send(err.message)
-    }
-    
-})
-
-app.get('/login', (req,res) => {
-    console.log('login route')
-    const urlPath = '../views/login.ejs'
-    if (req.cookies['accesToken']) {
-        res.redirect('/home')
-    } else {
-        res.render(urlPath)
-    }
-    
-
-})
-
-app.post('/login', async (req,res) => {
-    const email  = req.body.temail
-    const password = req.body.tpassword
-
-    try {
-        const data = await fetchByEmail(email)
-        const foundUser = data[0]
-        
-        if (!foundUser) throw new Error('user not found')
-
-        const realPassword = foundUser.password
-        const compare = await bcrypt.compare(password,realPassword)
-        if (!compare) throw new Error('wrong password!')
-
-        const user = {
-            userid : foundUser.userid,
-            name : foundUser.name,
-            phone_number : foundUser.phone_number,
-            email : foundUser.email,
-            role : foundUser.role,
-            job_title : foundUser.job_title,
-            salary : foundUser.salary
-        } 
-        const accesToken = generateToken(user,'acces')
-        const refreshToken = generateToken(user,'refresh')
-
-        res.cookie("accesToken",accesToken, {httpOnly : true})
-        res.cookie("refreshToken",refreshToken, {httpOnly : true})
-        res.redirect('/home')
-    }catch (err){ 
-        console.log(err.message)
-        res.redirect('/login')
-    }
-})
-
-app.get('/home',authMiddleware,(req,res) => {
-    const urlPath = '../views/home.ejs'
-    console.log(req.user)
-    res.render(urlPath,{user : req.user})
-})
-
-app.post('/logout', (req,res) => {
-    res.clearCookie("accesToken")
-    res.clearCookie("refreshToken")
-    res.redirect('/login')
-}) 
-
-app.post('/attendanceStart', async (req,res) => {
-    try {
-        const id = req.body.id
-        const date = req.body.date
-        const data = await attendaceStart(id,date)
-        console.log(data);
-        res.send(data)
-    } catch (err) {
-        res.send(err.message)
-    }
-})
-
-app.put('/attendanceEnd', async (req,res) => {
-    try {
-        const id = req.body.id
-        const data = await attendaceEnd(id)
-        console.log(data);
-        res.send(data)
-    } catch (err) {
-        console.log(err);
-    }
-})
-
-app.post('/GeneratePayroll', async (req,res) => {
-    try {
-        const id = req.body.id
-        const month = req.body.month
-        const year = req.body.year
-
-        const data = await newPayroll(id,month,year)
-        res.send(data)
-    } catch (err) {
-        console.log(err);
-        res.send(err.message)
-    }
-
-})
+app.post('/GeneratePayroll', payroll)
 
 app.listen(port, () => {
     console.log('connected to port',port)

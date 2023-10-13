@@ -430,3 +430,11 @@ html{
     gap: 10px;
 
 }
+
+#absen-btn {
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 50px;
+    align-items: center;
+
+}
