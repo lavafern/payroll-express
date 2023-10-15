@@ -17,7 +17,7 @@ app.set("view engine","ejs")
 
 
 app.post('/register', register)
-app.put('/ChangePassword', changePassword)
+app.put('/ChangePassword',authMiddleware, changePassword)
 app.get('/login', loginPage)
 app.post('/login', login)
 app.get('/home',authMiddleware,home)

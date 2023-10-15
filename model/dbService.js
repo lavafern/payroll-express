@@ -44,7 +44,7 @@ module.exports = {
         return new Promise((resolve, reject) => {
             const sqlQuery = `select * from attendance 
                              where employee_id = $1`
-            client.query(sqlQuery,[25], (err,res) => {
+            client.query(sqlQuery,[id], (err,res) => {
                 if (err) {
                     reject(new Error("error while querying"))
                 } else {

@@ -428,6 +428,7 @@ html{
     margin-top: 50px;
     margin-left: 10px;
     gap: 10px;
+    justify-content: center;
 
 }
 
@@ -436,5 +437,19 @@ html{
     flex-direction: row;
     margin-bottom: 50px;
     align-items: center;
+    justify-content: center;
+}
+#absen-btn .btn {
+    max-width:70%;
+    font-size: 30px;
+}
 
+.modal {
+    margin-top: 100px;
+}
+
+.container-info {
+    display: grid;
+    align-items: center;
+    justify-content: center;
 }

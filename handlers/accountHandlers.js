@@ -27,12 +27,16 @@ module.exports = {
      } ,
     changePassword : async (req,res) => {
         try{
-            const email = req.body.email
+            const id = req.user.userid
             const oldPassword = req.body.oldPassword
             const newPassword = req.body.newPassword
+            const newPasswordValidation = req.body.newPasswordValidation
+
+            if (newPassword!==newPasswordValidation) throw new Error('validation and new password not match')
+                
     
             const data = await fetchDb()
-            const foundUser =  data.find(user => user.email === email)
+            const foundUser =  data.find(user => user.userid === id)
             const realPassword = foundUser.password
     
             const compare = await bcrypt.compare(oldPassword,realPassword)
@@ -42,9 +46,28 @@ module.exports = {
             const newPasswordEncrypted = bcrypt.hashSync(newPassword, salt)
     
             const response = await changePasswordDb(email,newPasswordEncrypted)
-            res.send(response)
+
+            const result = {
+                status : 'success',
+                message : 'change password success!',
+                data : {
+                    response
+                }
+            }
+            res
+            .status(201)
+            .json(result)
         } catch (err) {
-            next(err)
+            const result = {
+                status : 'failed',
+                message : 'change password failed!',
+                data : {
+                    response
+                }
+            }
+            res
+            .status(400)
+            .json(result)
         }
         
     },
@@ -114,8 +137,8 @@ module.exports = {
         const urlPath = '../views/home.ejs'
         console.log(req.user)
         let attendaceToday = await fetchAttendance(req.user.userid)
-        attendaceToday = attendaceToday.find(x => x.date ===`27`)
-        console.log(attendaceToday);
+        const todayDate =  new Date().getDate()
+        attendaceToday = attendaceToday.find(x => x.date ===`${todayDate}`)
         const result = {
             status : 'success',
             message : 'fetch data succes',
@@ -127,7 +150,7 @@ module.exports = {
         console.log(result);
         res
         .status(200)
-        .render(urlPath,result)
+        .render(urlPath,{result : result})
     }
 
 
