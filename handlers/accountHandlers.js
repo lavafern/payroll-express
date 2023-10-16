@@ -26,6 +26,7 @@ module.exports = {
         
      } ,
     changePassword : async (req,res) => {
+        console.log('inside changepass api');
         try{
             const id = req.user.userid
             const oldPassword = req.body.oldPassword
@@ -45,7 +46,7 @@ module.exports = {
             const salt = bcrypt.genSaltSync(10)
             const newPasswordEncrypted = bcrypt.hashSync(newPassword, salt)
     
-            const response = await changePasswordDb(email,newPasswordEncrypted)
+            const response = await changePasswordDb(id,newPasswordEncrypted)
 
             const result = {
                 status : 'success',
@@ -60,10 +61,8 @@ module.exports = {
         } catch (err) {
             const result = {
                 status : 'failed',
-                message : 'change password failed!',
-                data : {
-                    response
-                }
+                message : err.message,
+                data : null
             }
             res
             .status(400)

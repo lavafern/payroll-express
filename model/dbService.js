@@ -84,13 +84,13 @@ module.exports = {
         })
     },
 
-    changePasswordDb : (email,newPassowrd) => {
+    changePasswordDb : (id,newPassowrd) => {
         const sqlQuery = `
             UPDATE users_login
             SET password = $1
-            WHERE email = $2;
+            WHERE userid = $2;
         `
-        const values = [newPassowrd,email]
+        const values = [newPassowrd,id]
         return new Promise((resolve, reject) => {
             client.query(sqlQuery,values, (err,res) => {
                 if (err) {
