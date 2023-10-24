@@ -4,11 +4,12 @@ module.exports = {
 
 
     attendanceStart : async (req,res) => {
+        console.log('in attendacestart');
         try {
             const id = req.user.userid
             const data = await attendanceStartDb(id)
             console.log('atten data:',data);
-            res.send(data)
+            res.redirect('/home')
         } catch (err) {
             res.send(err.message)
         }

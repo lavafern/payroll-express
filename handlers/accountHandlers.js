@@ -25,50 +25,46 @@ module.exports = {
         }
         
      } ,
-    changePassword : async (req,res) => {
-        console.log('inside changepass api');
+    changePassword : async (req,res,next) => {
         try{
             const id = req.user.userid
             const oldPassword = req.body.oldPassword
             const newPassword = req.body.newPassword
             const newPasswordValidation = req.body.newPasswordValidation
+            
 
             if (newPassword!==newPasswordValidation) throw new Error('validation and new password not match')
-                
-    
+            
             const data = await fetchDb()
             const foundUser =  data.find(user => user.userid === id)
             const realPassword = foundUser.password
-    
             const compare = await bcrypt.compare(oldPassword,realPassword)
             if (!compare) throw new Error('wrong password')
     
             const salt = bcrypt.genSaltSync(10)
             const newPasswordEncrypted = bcrypt.hashSync(newPassword, salt)
-    
             const response = await changePasswordDb(id,newPasswordEncrypted)
+            req.flash('error', 'Success!!')
+            console.log('after flash')
+            res.redirect('/home')
 
-            const result = {
-                status : 'success',
-                message : 'change password success!',
-                data : {
-                    response
-                }
-            }
-            res
-            .status(201)
-            .json(result)
         } catch (err) {
-            const result = {
-                status : 'failed',
-                message : err.message,
-                data : null
-            }
-            res
-            .status(400)
-            .json(result)
+            console.log('err happended');
+            console.log(err);
+            res.redirect('/home')
         }
         
+    },
+    editData : (req,res,next) => {
+        try {
+            const newEmail = req.body.email
+            const newName = req.body.name
+            const newPhoneNumber = req.body.number
+
+
+        } catch (err) {
+            
+        }
     },
     loginPage : (req,res) => {
         try {
@@ -134,10 +130,10 @@ module.exports = {
 
     home : async (req,res) => {
         const urlPath = '../views/home.ejs'
-        console.log(req.user)
         let attendaceToday = await fetchAttendance(req.user.userid)
         const todayDate =  new Date().getDate()
         attendaceToday = attendaceToday.find(x => x.date ===`${todayDate}`)
+
         const result = {
             status : 'success',
             message : 'fetch data succes',
@@ -146,10 +142,10 @@ module.exports = {
                 attendaceToday : attendaceToday
             }
         }
-        console.log(result);
+        const message = req.flash('error')
         res
         .status(200)
-        .render(urlPath,{result : result})
+        .render(urlPath,{result : result, message : message})
     }
 
 

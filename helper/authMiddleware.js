@@ -1,16 +1,19 @@
 const jwt = require('jsonwebtoken');
 
 async function authMiddleware(req,res,next) {
+
     const authHeaders = req.cookies['accesToken']
     const token = authHeaders ?? undefined
 
     try {
+        console.log('refres token : ', req.cookies['refreshToken']);
         const user = await jwt.verify(token,process.env.ACCES_TOKEN_SECRET)
         req.user = user
         next()
     } catch {
         const refreshToken = req.cookies['refreshToken']
         try {
+            
             const userVerif = await jwt.verify(refreshToken,process.env.REFRESH_TOKEN_SECRET)
             console.log('refresh match and generate new acces token----------------');
             const user = {
@@ -24,7 +27,12 @@ async function authMiddleware(req,res,next) {
             }
             const accesToken = generateToken(user,'acces')
             res.cookie("accesToken",accesToken, {httpOnly : true})
-            res.redirect(`${req.url}`)
+            if (req.method === 'POST') {
+                return res.redirect(307, `${req.url}`)
+            } 
+            console.log(req.method);
+            console.log(req.url);
+            return res.redirect(`${req.url}`)
         } catch (err) {
             console.log('refresh token not match');
             res.clearCookie("accesToken");
