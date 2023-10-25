@@ -39,9 +39,30 @@
    
     <!-- home section stars  -->
 
-    <section class="home" id="home">
-        <div class="content">
 
+    <section class="home" id="home">
+      
+        <div class="content">
+            <!-- flash messsage -->
+          <% if(result.data.flash.success.length >0){ %>
+
+                 
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+              <strong><%= result.data.flash.success %></strong>
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <% } %>
+
+            <% if(result.data.flash.error.length >0){ %>
+                 
+              <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <strong><%= result.data.flash.error %></strong>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+  
+              <% } %>
+              <!-- flash messsage end -->
             <form action="/attendanceStart"  method="POST" id="absen-btn"></form>
 
               
@@ -84,14 +105,8 @@
                   </div>
               </div>
 
-              <% if(message.length > 0){ %>
-                 
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                  <strong>Ganti password berhasil!</strong>
-                  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
 
-                <% } %>
+
             <div class="menu-edit">
 
                 <!-- Button trigger modal -->

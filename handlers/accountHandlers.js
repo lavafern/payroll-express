@@ -33,24 +33,22 @@ module.exports = {
             const newPasswordValidation = req.body.newPasswordValidation
             
 
-            if (newPassword!==newPasswordValidation) throw new Error('validation and new password not match')
+            if (newPassword!==newPasswordValidation) throw new Error('password gagal diganti, password baru dan validasi password baru harus sama')
             
             const data = await fetchDb()
             const foundUser =  data.find(user => user.userid === id)
             const realPassword = foundUser.password
             const compare = await bcrypt.compare(oldPassword,realPassword)
-            if (!compare) throw new Error('wrong password')
+            if (!compare) throw new Error('password gagal diganti, password salah')
     
             const salt = bcrypt.genSaltSync(10)
             const newPasswordEncrypted = bcrypt.hashSync(newPassword, salt)
-            const response = await changePasswordDb(id,newPasswordEncrypted)
-            req.flash('error', 'Success!!')
-            console.log('after flash')
+            await changePasswordDb(id,newPasswordEncrypted)
+            req.flash('success', 'Password berhasil diganti!')
             res.redirect('/home')
 
         } catch (err) {
-            console.log('err happended');
-            console.log(err);
+            req.flash('error', err.message)
             res.redirect('/home')
         }
         
@@ -68,16 +66,19 @@ module.exports = {
     },
     loginPage : (req,res) => {
         try {
-            console.log('login route')
             const urlPath = '../views/login.ejs'
-            if (req.cookies['accesToken']) {
-                res.redirect('/home')
-            } else {
-                res.render(urlPath)
+            if (req.cookies['accesToken']) return res.redirect('/home')
+            const result = {
+                status : 'success',
+                message : 'OK',
+                data : {
+                    flash : req.flash('error')
+                }
             }
-            
+
+            return res.render(urlPath,{ result : result})
         } catch (err) {
-            next(err)
+            console.log(err);
         }
         
         
@@ -91,11 +92,11 @@ module.exports = {
             const data = await fetchByEmailDb(email)
             const foundUser = data[0]
             
-            if (!foundUser) throw new Error('user not found')
+            if (!foundUser) throw new Error('email atau password salah')
     
             const realPassword = foundUser.password
             const compare = await bcrypt.compare(password,realPassword)
-            if (!compare) throw new Error('wrong password!')
+            if (!compare) throw new Error('email atau password salah')
     
             const user = {
                 userid : foundUser.userid,
@@ -113,7 +114,7 @@ module.exports = {
             res.cookie("refreshToken",refreshToken, {httpOnly : true})
             res.redirect('/home')
         }catch (err){ 
-            console.log(err.message)
+            req.flash('error',err.message)
             res.redirect('/login')
         }
     },
@@ -136,16 +137,20 @@ module.exports = {
 
         const result = {
             status : 'success',
-            message : 'fetch data succes',
+            message : 'OK',
             data : {
                 user : req.user,
-                attendaceToday : attendaceToday
+                attendaceToday : attendaceToday,
+                flash: {
+                    success : req.flash("success"),
+                    error : req.flash("error")
+                }
             }
-        }
-        const message = req.flash('error')
+        }   
+        console.log(result.data.flash);
         res
         .status(200)
-        .render(urlPath,{result : result, message : message})
+        .render(urlPath,{result : result})
     }
 
 

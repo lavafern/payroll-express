@@ -32,6 +32,15 @@
             <h1>Login</h1>
             <p>Silahkan login!</p>
 
+            <% if(result.data.flash.length > 0){ %>
+                 
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                  <strong><%= result.data.flash %></strong>
+                  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+    
+                <% } %>
+
             <form  method="POST" action="/login">
                 <!-- Email input -->
                 <div class="form-outline mb-4">
@@ -102,6 +111,8 @@
 
 
     <script src="js/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+
 </body>
 
 </html>

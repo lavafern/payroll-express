@@ -17,46 +17,6 @@ const attendanceCheck = () => {
 })();
 
 
-console.log(locals.messages);
-
-
-
-
-
-
-/// change pass
-// const savePass = async (oldPassword,newPassword,newPasswordValidation) => {
-    // const res = await fetch('http://localhost:3001/ChangePassword', {
-        // method : "PUT",
-        // headers : {
-            // "Content-Type": "application/json"
-        // },
-        // body : JSON.stringify({
-            // oldPassword : oldPassword,
-            // newPassword : newPassword,
-            // newPasswordValidation : newPasswordValidation
-        // })
-    // })
-    // const json = await res.json()
-    // console.log(json);
-// }
-
-/// click fuction of save password
-// (() => {
-    // const button = document.getElementById("save-password")
-    //  
-    // button.addEventListener('click',  () => {
-        // const oldPasswordinput = document.getElementById("oldPasswordinput").value 
-        // const newPasswordinput = document.getElementById("newPasswordinput").value 
-        // const newPasswordinputVal = document.getElementById("newPasswordinputVal").value
-// 
-        // savePass(oldPasswordinput,newPasswordinput,newPasswordinputVal)
-// 
-        // 
-        // console.log('save passs status : ',savePass);
-    // })
-// 
-// })()
 
 
 
