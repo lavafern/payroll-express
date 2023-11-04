@@ -6,32 +6,25 @@ async function authMiddleware(req,res,next) {
     const token = authHeaders ?? undefined
 
     try {
-        console.log('refres token : ', req.cookies['refreshToken']);
         const user = await jwt.verify(token,process.env.ACCES_TOKEN_SECRET)
         req.user = user
+        console.log('acces token match, authenticated!');
         next()
     } catch {
         const refreshToken = req.cookies['refreshToken']
         try {
-            
+            console.log('acces token is expired, checks refresh token!');
             const userVerif = await jwt.verify(refreshToken,process.env.REFRESH_TOKEN_SECRET)
-            console.log('refresh match and generate new acces token----------------');
+            console.log('refresh token match! and generate new acces token----------------');
             const user = {
-                userid : userVerif.userid,
-                name : userVerif.name,
-                phone_number : userVerif.phone_number,
-                email: userVerif.email,
-                role : userVerif.role,
-                job_title : userVerif.job_title,
-                salary : userVerif.salary
+                userId : userVerif.userId,
+                email : userVerif.email,
             }
             const accesToken = generateToken(user,'acces')
             res.cookie("accesToken",accesToken, {httpOnly : true})
             if (req.method === 'POST') {
                 return res.redirect(307, `${req.url}`)
             } 
-            console.log(req.method);
-            console.log(req.url);
             return res.redirect(`${req.url}`)
         } catch (err) {
             console.log('refresh token not match');
