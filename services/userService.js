@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt')
 
 
 module.exports = {
-    findAll : async () => {
+    findAllService : async () => {
         try {
             const allUser = await prisma.user.findMany()
             if (allUser.length < 1) return "no user"
@@ -13,10 +13,10 @@ module.exports = {
         }
     },
 
-    findById : async (id) => {
+    findUserByIdService : async (id) => {
         try {
             id = Number(id)
-            const checkId = prisma.user.findUnique({
+            const checkId = await prisma.user.findUnique({
                 where : {
                     id
                 },
@@ -36,7 +36,7 @@ module.exports = {
             throw err
         }
     },
-    createUser : async (data) => {
+    userRegisterService : async (data) => {
 
         try {
 
@@ -104,27 +104,23 @@ module.exports = {
         }
     },
 
-    changePassword : async (id,oldPassword,newPassword,newPasswordValidation) => {
-        // const id = req.user.userid
-        // const oldPassword = req.body.oldPassword
-        // const newPassword = req.body.newPassword
-        // const newPasswordValidation = req.body.newPasswordValidation
+    changePasswordService : async (id,oldPassword,newPassword,newPasswordValidation) => {
         try {
-            if (newPassword!==newPasswordValidation) throw new Error('password gagal diganti, password baru dan validasi password baru harus sama')
+            if (newPassword!==newPasswordValidation) throw new Error('password gagal diganti, password baru dan validasi password baru harus sama', {cause : 401})
             const foundUser = await prisma.userLogin.findUnique({
                 where : {
                     userId : id
                 }
             })
-            if (!foundUser) throw new Error("user not found", {cause : 401})
-
+            if (!foundUser) throw new Error("user tidak ditemukan", {cause : 401})
             const realPassword = foundUser.password
-            const comparePassword = await bcrypt.compare(oldPassword,realPassword)
-            if (!comparePassword) throw new Error('password gagal diganti, password salah')
+            
+            const checkPassword = await bcrypt.compare(oldPassword,realPassword)            
+            if (!checkPassword) throw new Error('password gagal diganti, password salah', {cause : 401})
 
             const newPasswordEncrypted = await bcrypt.hash(newPassword, 10)
 
-            const updatedLoginData = await prisma.userLogin.update({
+            await prisma.userLogin.update({
                 where: {
                     userId: id,
                   },
@@ -133,9 +129,36 @@ module.exports = {
                   },
             })
 
-            return 'chage password success!'
+            return 
 
 
+        } catch (err) {
+            throw err
+        }
+    },
+
+    updateProfileService : async (id,name,phone_number) => {
+        try {
+            if (!name || !phone_number) throw new Error("tidak boleh ada kolom yang kosong")
+            if (isNaN(Number(phone_number))) throw new Error("nomor telepon harus angka")
+            const foundUser = await prisma.userLogin.findUnique({
+                where : {
+                    userId : id
+                }
+            })
+            if (!foundUser) throw new Error("user tidak ditemukan", {cause : 401})
+
+            const updatedData = await prisma.user.update({
+                where : {
+                    id : id
+                },
+                data : {
+                    name : name,
+                    phone_number : phone_number
+                }
+            })
+
+            return updatedData
         } catch (err) {
             throw err
         }

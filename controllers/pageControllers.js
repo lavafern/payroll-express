@@ -1,5 +1,5 @@
 const {fetchAttendanceByIdToday } = require("../services/attendanceService")
-const {findById} = require("../services/userService")
+const {findUserByIdService} = require("../services/userService")
 const path = require("path")
 
 module.exports = {
@@ -38,7 +38,7 @@ module.exports = {
     getUserData : async (req, res,next) => {
         try {
             const userId = (req.user).userId
-            const userData = await  findById(userId)
+            const userData = await  findUserByIdService(userId)
             res.json({
                 status : 200,
                 message : "succesfully fetch user data!",

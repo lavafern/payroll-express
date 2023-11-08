@@ -1,8 +1,12 @@
 ///absen
-const attendanceCheck = () => {
-    result = JSON.parse(result)
-    const attendace = result.data.attendaceToday
-    return attendace
+const attendanceCheck = async () => {
+    try {
+        const fetching = await fetch('http://localhost:3001/attendanceToday')
+        const f = await fetching.json()
+        return f
+    } catch (err) {
+        
+    }
 }
 
 
@@ -16,6 +20,46 @@ getUserInfo = async () => {
     }
 }
 
+const getFlash = async () => {
+    try {
+        const fetching = await fetch('http://localhost:3001/showFlash')
+        const result = await fetching.json()
+        console.log('result ====',result);
+        return result
+    } catch (err) {
+        console.log(err);
+    }
+}
+
+const startAttendance = async () => {
+    try {
+        const fetching = await fetch('http://localhost:3001/attendNow', {
+            method: 'POST'
+        })
+        const result = await fetching.json()
+        console.log('attendnow : ',result);
+        AttendanceButtonApperance()
+        return result
+    } catch (err) {
+        console.log(err.message);
+    }
+}
+
+const endAttendance = async () => {
+    try {
+        const fetching = await fetch('http://localhost:3001/attendEnd', {
+            method: 'POST'
+        })
+        const result = await fetching.json()
+        console.log('attendnow : ',result);
+        AttendanceButtonApperance()
+        return result
+    } catch (err) {
+        console.log(err.message);
+    }
+}
+
+
 (assignUserInfo = async () => {
     try {
         const {data} = await getUserInfo()
@@ -28,7 +72,7 @@ getUserInfo = async () => {
         namaInfoButton.innerText = data.name
         telpInfoButton.innerText = data.phone_number
         jabatanInfoButton.innerText = data.job_title
-    } catch (error) {
+    } catch (err) {
         console.log(err);
     }
 })();
@@ -37,18 +81,54 @@ getUserInfo = async () => {
 
 
 
-(AttendanceButtonApperance = () => {
-    const attendance= attendanceCheck()
-    const button = document.getElementById("absen-btn")
-    if (attendance) {
-        return button.innerHTML = `<input type="submit" class="btn btn-secondary btn-lg disabled"  value="Sudah absen" id="abs-b">`
+(AttendanceButtonApperance = async () => {
+    const attendance = await attendanceCheck()
+
+    const button = document.getElementById("absen-div")
+    
+
+    if (attendance.data) {
+        
+        if (attendance.data[0].overtime) return button.innerHTML = `
+            <button type="button" class="btn btn-secondary btn-lg" disabled>pulang</button>
+            `
+
+        return button.innerHTML = `
+               <button type="button" class="btn btn-secondary btn-lg" onclick="endAttendance()">Pulang</button>
+         `
     }
-    button.innerHTML = ` <input type="submit" class="btn btn-primary btn-lg"  value="Absen" id="abs-b">`
+    return button.innerHTML = `
+    <button type="button" class="btn btn-primary btn-lg"onclick="startAttendance()">Masuk</button>
+     `
 })();
 
 
 
-
+(showFlashMessage = async () => {
+    try {
+        const flashMessage = await getFlash()
+        const flashElemet = document.getElementById("flashElement")
+        console.log('flash : ',flashMessage.data.error);
+        if (flashMessage.data.error) {
+            flashElemet.innerHTML = `
+            <div class="alert alert-danger alert-dismissible fade show" role="alert" id="flashElement">
+                <strong>${flashMessage.data.error}</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            `
+        }
+        if (flashMessage.data.success) {
+            flashElemet.innerHTML = `
+            <div class="alert alert-success alert-dismissible fade show" role="alert" id="flashElement">
+                <strong>${flashMessage.data.success}</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            `
+        }
+    } catch (err) {
+        
+    }
+})();
 
 
 

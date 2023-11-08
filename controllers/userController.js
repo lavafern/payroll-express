@@ -1,12 +1,12 @@
 const {generateToken} = require('../helper/authMiddleware.js')
-const {createUser,findAll,findById,loginAttemp} = require("../services/userService.js")
+const {userRegisterService,findAllService,findUserByIdService,loginAttemp,changePasswordService,updateProfileService} = require("../services/userService.js")
 module.exports = {
     findAll : async (req,res,next) => {
         try {
-            const allUser = await findAll()
+            const allUser = await findAllService()
             console.log(allUser);
 
-            res
+            return res
             .status(200)
             .json({
                 status : 200,
@@ -22,9 +22,9 @@ module.exports = {
     findUserById : async (req,res,next) => {
         try {
             const {id} = req.params
-            const foundUser = await findById(id)
+            const foundUser = await findUserByIdService(id)
 
-            res
+            return res
             .status(200)
             .json({
                 status : 200,
@@ -40,9 +40,9 @@ module.exports = {
 
     userRegister : async (req,res,next) => {
         try {
-            const newUser = await createUser(req.body)
+            const newUser = await userRegisterService(req.body)
             console.log('newuser : ',newUser);
-            res
+            return res
             .status(201)
             .json({
                 status : 201,
@@ -66,19 +66,60 @@ module.exports = {
             const accesToken = generateToken(user,'acces')
             const refreshToken = generateToken(user,'refresh')
 
-            res
+            return res
             .cookie("accesToken",accesToken, {httpOnly : true})
             .cookie("refreshToken",refreshToken, {httpOnly : true})
             .status(200)
             .redirect('/home')
         } catch (err) {
-            console.log(err);
+            req.flash('error', err.message)
             next(err)
         }
+    },
+
+    changePassword : async (req,res,next) => {
+
+        try {
+            const id = (req.user).userId
+            const oldPassword = req.body.oldPassword
+            const newPassword = req.body.newPassword
+            const newPasswordValidation = req.body.newPasswordValidation
+
+            const result = await changePasswordService(id,oldPassword,newPassword,newPasswordValidation)
+
+            req.flash('success', 'password berhasil diganti!')
+            return res.redirect('/home')
+            
+        } catch (err) {
+            req.flash('error', err.message)
+            return res.redirect('/home')
+        }
+    },
+    logout : (req,res) => {
+        try {
+            res.clearCookie("accesToken")
+            res.clearCookie("refreshToken")
+            res.redirect('/login')
+        } catch (err) {
+            next(err)
+        }
+        
+    },
+    updateProfile : (req,res) => {
+        try {
+            const id = (req.user).userId
+            const name = req.body.nama
+            const phone_number = req.body.notelp
+
+            const result = updateProfileService(id,name,phone_number)
+
+            req.flash('success', 'profil berhasil diganti!')
+            return res.redirect('/home')
+        } catch (err) {
+            req.flash('error', err.message)
+            return res.redirect('/home')
+        }
     }
-
-
-
 
 
 }

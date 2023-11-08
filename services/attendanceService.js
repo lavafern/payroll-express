@@ -1,25 +1,36 @@
 const prisma = require("./prisma.service")
+const {findUserByIdService} = require("./userService")
+const {countOvertime} = require("../helper/attendanceHelper")
 
 
 module.exports = {
+
+    fetchAttendanceId : async (id) => {
+        try {
+            await findUserByIdService(id) //check Id
+            const attendace = await prisma.attendance.findMany({
+                where : {
+                    userId : id
+                }
+            })
+
+            return attendace
+
+        } catch (err) {
+            throw err
+        }
+    },
         
     fetchAttendanceByIdToday : async (id) => {
 
         try {
             
             let date =  new Date().getDate()
-            date = date < 10 ? Number(`0${date}`) : date
             let month =  new Date().getMonth()+1
-            month = month < 10 ? Number(`0${month}`) : month
             const year =  new Date().getFullYear()
 
-            const checkId = await prisma.user.findUnique({
-                where : {
-                    id
-                }
-            })
 
-            if (!checkId) throw new Error("no user")
+            await findUserByIdService(id) //check Id
 
             const attendace = await prisma.attendance.findMany({
                 where : {
@@ -49,30 +60,26 @@ module.exports = {
 
     attendNow : async (id) => {
         try {
-            const start_time = new Date()
-            let date = start_time.getDate()             
-            let month = start_time.getMonth()+1
-            const year = start_time.getFullYear()
-            date = date < 10 ? Number(`0${date}`) : date
-            month = month < 10 ? Number(`0${month}`) : month
+            const end_time = new Date()
+            const hour = end_time.getHours()
+            const minutes = end_time.getMinutes()
+            let date = end_time.getDate()       
+            let month = end_time.getMonth()+1
+            const year = end_time.getFullYear()
+
+            await findUserByIdService(id) // checkId
 
 
-            const checkId = await prisma.user.findUnique({
-                where : {
-                    id
-                }
-            })
-
-            if (!checkId) throw new Error("no user")
-
-            const lateTreshold = new Date(`${year}-${month}-${date}T08:00:00`)
-            const status = start_time > lateTreshold ? "late" : "present"
+            const lateTresholdHour = 8
+            const status = hour > lateTresholdHour ? "late" : "present"
             const newAttendance = await prisma.attendance.create({
                 data : {
                     date,
                     month,
                     year,
-                    start_time,
+                    start_time : {"hour" : hour,
+                                  "minutes" : minutes
+                                 },
                     status,
                     userId : id
                 }
@@ -82,6 +89,54 @@ module.exports = {
         } catch (err) {
             console.log(err);
             throw err
+        }
+    },
+
+    attendaceEndService : async (id) => {
+        try {
+            console.log('in anteeen servoce');
+            const end_time = new Date()
+            let date = end_time.getDate()       
+            let month = end_time.getMonth()+1
+            const year = end_time.getFullYear()
+            const hour = end_time.getHours()
+            const minutes = end_time.getMinutes()
+
+            await findUserByIdService(id) // check id
+            const {overtimeHours,overtimeMinutes} = countOvertime(hour,minutes)
+            console.log(overtimeHours,overtimeMinutes);
+            const endAttendance = await prisma.attendance.updateMany({
+                where : {
+                    AND: [
+                        {
+                            userId : id
+                        },
+                        {
+                            date
+                        },
+                        {
+                            month
+                        },
+                        {
+                            year
+                        }
+                    ]
+                },
+                data : {
+                    end_time : {
+                        "hour" : hour,
+                        "minutes" : minutes
+                    },
+                    overtime : {
+                        "hour" : overtimeHours,
+                        "minutes" : overtimeMinutes
+                    },
+                }
+            })
+            console.log('endAttendance = ',endAttendance);
+            return endAttendance
+        } catch (err) {
+            console.log(err);
         }
     }
 }

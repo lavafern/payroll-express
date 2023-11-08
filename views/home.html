@@ -26,7 +26,7 @@
         <!-- <a href="#" class="btn">Log in</a> -->
         
     
-        <form action="/logout"  method="POST">
+        <form action="/logout"  method="GET">
             
             <input type="submit" class="btn btn-outline-danger btn-lg" value="Logout">
         </form>
@@ -43,29 +43,8 @@
     <section class="home" id="home">
       
         <div class="content">
-            <!-- flash messsage -->
-          <!-- <% if(result.data.flash.success.length >0){ %> -->
-<!--  -->
-                 <!--  -->
-            <!-- <div class="alert alert-success alert-dismissible fade show" role="alert"> -->
-              <!-- <strong><%= result.data.flash.success %></strong> -->
-              <!-- <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button> -->
-            <!-- </div> -->
-<!--  -->
-            <!-- <% } %> -->
-<!--  -->
-            <!-- <% if(result.data.flash.error.length >0){ %> -->
-                 <!--  -->
-              <!-- <div class="alert alert-danger alert-dismissible fade show" role="alert"> -->
-                <!-- <strong><%= result.data.flash.error %></strong> -->
-                <!-- <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button> -->
-              <!-- </div> -->
-  <!--  -->
-              <!-- <% } %> -->
-              <!-- flash messsage end -->
-            <form action="/attendanceStart"  method="POST" id="absen-btn"></form>
-
-              
+          <div id="flashElement"></div>
+          <div id="absen-div"></div>
               
               <div class="container-info">
                 <div class="row">
@@ -136,12 +115,21 @@
                     <div class="modal-body">
                         
                         
-                        
+                      <form method="post" action="/profile">
+                        <div class="mb-3">
+                            <label for="exampleInputPassword1" class="form-label">nama</label>
+                            <input type="text" class="form-control" id="oldPasswordinput" name="nama">
+                          </div>
+                          <div class="mb-3">
+                            <label for="exampleInputPassword1" class="form-label">nomor telepon</label>
+                            <input type="number" class="form-control" id="newPasswordinput" name="notelp">
+                          </div>
                         
                     </div>
                     <div class="modal-footer">
                       <button type="button" class="btn btn-secondary btn-lg" data-bs-dismiss="modal">Close</button>
-                      <button type="button" class="btn btn-primary btn-lg">Save changes</button>
+                      <button type="submit" class="btn btn-primary btn-lg" id="save-password">Save changes</button>
+                      
                     </div>
                   </div>
                 </div>
@@ -157,7 +145,7 @@
                       <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                       <form method="post" action="/ChangePassword">
+                       <form method="post" action="/password">
                         <div class="mb-3">
                             <label for="exampleInputPassword1" class="form-label">Old password</label>
                             <input type="password" class="form-control" id="oldPasswordinput" name="oldPassword">

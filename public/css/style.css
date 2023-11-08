@@ -432,14 +432,14 @@ html{
 
 }
 
-#absen-btn {
+#absen-div {
     display: flex;
     flex-direction: row;
     margin-bottom: 50px;
     align-items: center;
     justify-content: center;
 }
-#absen-btn .btn {
+#absen-div .btn {
     max-width:70%;
     font-size: 30px;
 }

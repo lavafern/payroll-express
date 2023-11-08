@@ -26,10 +26,10 @@ app.use(pageRoutes)
 app.use(attendanceRoutes)
 
 app.use((err, req, res, next) => {
-    console.log(err.cause);
+    console.log(err);
     if (err.cause === 400) {
         console.log('in 400');
-        res.status(400).json({
+        return res.status(400).json({
             status: 400,
             message : err.message,
             data : null
@@ -37,19 +37,18 @@ app.use((err, req, res, next) => {
     }
 
     if (err.cause === 401) {
-        console.log('in 401');
-        req.flash('error', err.message)
-        res.redirect('/login')
+        console.log(req.url);
+        return res.redirect(`${req.url}`)
     }
 
-    res.status(500).json({
+    return res.status(500).json({
         status: 500,
         message : err.message,
         data : null
     })
 })
 app.use((req,res,next) => {
-    res.status(404).json({
+    return res.status(404).json({
         status: 404,
         message : "404 not found",
         data : null
